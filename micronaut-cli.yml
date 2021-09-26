@@ -1,6 +1,0 @@
-applicationType: default
-defaultPackage: br.com.zup.academy.alissonprado
-testFramework: junit
-sourceLanguage: java
-buildTool: gradle
-features: [annotation-api, app-name, gradle, h2, http-client, java, java-application, junit, logback, mockito, netty-server, readme, shade, yaml]

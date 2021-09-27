@@ -5,6 +5,7 @@ import br.com.zup.academy.alissonprado.model.TipoChave
 import io.micronaut.core.annotation.AnnotationValue
 import io.micronaut.validation.validator.constraints.ConstraintValidator
 import io.micronaut.validation.validator.constraints.ConstraintValidatorContext
+import jakarta.inject.Singleton
 import javax.validation.Constraint
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.*
@@ -17,16 +18,18 @@ annotation class PixValidator(
     val message: String = "Chave com formato inválido."
 )
 
+@Singleton
 class ValidaPixValidator : ConstraintValidator<PixValidator, RegistraChavePixRequest> {
 
     override fun isValid(
-        value: RegistraChavePixRequest,
+        value: RegistraChavePixRequest?,
         annotationMetadata: AnnotationValue<PixValidator>,
         context: ConstraintValidatorContext
     ): Boolean {
-        if (value.tipoChave == null) {
+        if (value?.tipoChave == null) {
             return false
         } else {
+
             when (value.tipoChave) {
                 TipoChave.CPF -> return value.chave!!.matches("^[0-9]{11}\$".toRegex())
 

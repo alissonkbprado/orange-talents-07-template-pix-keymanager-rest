@@ -1,5 +1,7 @@
 package br.com.zup.academy.alissonprado.features.registraPix
 
+import br.com.zup.academy.alissonprado.RegistraPixRequest
+import br.com.zup.academy.alissonprado.RegistraPixServiceGrpc
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -10,29 +12,33 @@ import org.slf4j.LoggerFactory
 import javax.validation.Valid
 
 @Validated
-@Controller(value = "/api/chavesPix")
+@Controller(value = "/api/clientes/{clienteId}")
 class RegistraPixController(
-    private val service: RegistraPixService
+    private val gRpcClient: RegistraPixServiceGrpc.RegistraPixServiceBlockingStub
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Post
-    fun registra(@Body @Valid request: RegistraChavePixRequest): HttpResponse<Any> {
+    @Post(value = "/pix")
+    fun registra(clienteId: String, @Body @Valid request: RegistraChavePixRequest): HttpResponse<Any> {
 
         logger.info(
             "Recebida requisição para registro de nova chave Pix. idCliente: ${
-                request.idClienteBanco.replaceAfter(
+                clienteId?.replaceAfter(
                     "-",
                     "***"
                 )
             } - chave: ${request.chave}"
         )
 
-        val idPix = service.registra(request)
+        val requestGrpc: RegistraPixRequest? = request.toGrpc(clienteId)
 
-        val uri = UriBuilder.of("/api/chavesPix/{idPix}")
-            .expand(mutableMapOf(Pair("idPix", idPix)))
+        val idPix = gRpcClient.registraPix(requestGrpc).idPix
+
+        logger.info("Chave Pix registrada: idPix ${idPix?.replaceAfter("-", "***")}")
+
+        val uri = UriBuilder.of("/api/clientes/{clienteId}/pix/{idPix}")
+            .expand(mutableMapOf(Pair("clienteId", clienteId), Pair("idPix", idPix)))
 
         return HttpResponse.created<Any?>(uri).body(hashMapOf("idPix" to idPix))
     }

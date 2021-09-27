@@ -6,9 +6,7 @@ import br.com.zup.academy.alissonprado.model.TipoConta
 import br.com.zup.academy.alissonprado.model.getTipoChaveGrpc
 import br.com.zup.academy.alissonprado.model.getTipoContaGrpc
 import br.com.zup.academy.alissonprado.validation.PixValidator
-import br.com.zup.academy.alissonprado.validation.Uuid
 import io.micronaut.core.annotation.Introspected
-import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
@@ -26,7 +24,7 @@ data class RegistraChavePixRequest(
     val chave: String?
 ) {
 
-    fun toGrpc(@NotBlank @Uuid clienteId: String) : RegistraPixRequest {
+    fun toGrpc(clienteId: String) : RegistraPixRequest {
 
         return RegistraPixRequest.newBuilder()
             .setIdClienteBanco(clienteId)
@@ -35,4 +33,5 @@ data class RegistraChavePixRequest(
             .setChave(this.chave ?: "")
             .build()
     }
+
 }

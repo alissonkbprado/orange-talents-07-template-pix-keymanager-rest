@@ -8,11 +8,11 @@ enum class TipoChave {
 }
 
 fun TipoChave.getTipoChaveGrpc(): br.com.zup.academy.alissonprado.TipoChave {
-    when (this.name) {
-        "CPF" -> return br.com.zup.academy.alissonprado.TipoChave.CPF
-        "CELULAR" -> return br.com.zup.academy.alissonprado.TipoChave.CELULAR
-        "EMAIL" -> return br.com.zup.academy.alissonprado.TipoChave.EMAIL
-        "ALEATORIA" -> return br.com.zup.academy.alissonprado.TipoChave.ALEATORIA
-        else -> return br.com.zup.academy.alissonprado.TipoChave.CHAVE_DESCONHECIDA
+    return when (this.name) {
+        "CPF" -> br.com.zup.academy.alissonprado.TipoChave.CPF
+        "CELULAR" -> br.com.zup.academy.alissonprado.TipoChave.CELULAR
+        "EMAIL" -> br.com.zup.academy.alissonprado.TipoChave.EMAIL
+        "ALEATORIA" -> br.com.zup.academy.alissonprado.TipoChave.ALEATORIA
+        else -> br.com.zup.academy.alissonprado.TipoChave.CHAVE_DESCONHECIDA
     }
 }

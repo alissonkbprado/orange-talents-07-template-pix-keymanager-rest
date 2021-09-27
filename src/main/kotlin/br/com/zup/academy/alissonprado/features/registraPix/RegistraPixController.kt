@@ -2,6 +2,7 @@ package br.com.zup.academy.alissonprado.features.registraPix
 
 import br.com.zup.academy.alissonprado.RegistraPixRequest
 import br.com.zup.academy.alissonprado.RegistraPixServiceGrpc
+import br.com.zup.academy.alissonprado.validation.Uuid
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -10,6 +11,7 @@ import io.micronaut.http.uri.UriBuilder
 import io.micronaut.validation.Validated
 import org.slf4j.LoggerFactory
 import javax.validation.Valid
+import javax.validation.constraints.NotBlank
 
 @Validated
 @Controller(value = "/api/clientes/{clienteId}")

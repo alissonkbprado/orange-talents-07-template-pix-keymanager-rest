@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory
 import javax.validation.Valid
 import javax.validation.constraints.NotBlank
 
-@Validated
 @Controller(value = "/api/clientes/{clienteId}")
 class RegistraPixController(
     private val gRpcClient: RegistraPixServiceGrpc.RegistraPixServiceBlockingStub

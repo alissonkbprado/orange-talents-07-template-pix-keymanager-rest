@@ -1,5 +1,6 @@
 package br.com.zup.academy.alissonprado.grpc
 
+import br.com.zup.academy.alissonprado.PesquisaChavePixServiceGrpc
 import br.com.zup.academy.alissonprado.RegistraPixServiceGrpc
 import br.com.zup.academy.alissonprado.RemovePixServiceGrpc
 import io.grpc.ManagedChannel
@@ -15,6 +16,9 @@ class GrpcClientFactory(@GrpcChannel(value = "keymanager-grpc") val channel: Man
 
     @Singleton
     fun removePixClientSutb() = RemovePixServiceGrpc.newBlockingStub(channel)
+
+    @Singleton
+    fun pesquisaPixClientSutb() = PesquisaChavePixServiceGrpc.newBlockingStub(channel)
 
 //    @Bean
 //    fun registraPixClientSutb(): RegistraPixServiceGrpc.RegistraPixServiceBlockingStub {

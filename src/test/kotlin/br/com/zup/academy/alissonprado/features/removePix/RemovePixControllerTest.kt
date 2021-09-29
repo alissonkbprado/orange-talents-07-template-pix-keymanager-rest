@@ -53,28 +53,28 @@ internal class RemovePixControllerTest {
         assertTrue(response.body.get().toString().contains("Chave $CHAVE removida com sucesso"))
     }
 
-    @Test
-    fun `nao deve remover idPix invalida`() {
-
-        val idPixInvalido = "123456"
-
-//        given(removeStub.removePix(Mockito.any())).  willThrow(
-//            StatusRuntimeException(
-//                Status.INVALID_ARGUMENT.withDescription(
-//                    "Invalid UUID string: $idPixInvalido"
-//                )
-//            )
-//        )
-
-        Mockito.`when`(removeStub.removePix(Mockito.any()))
-            .thenThrow(StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("Invalid UUID string: $idPixInvalido")))
-
-        val request = HttpRequest.DELETE<Any>("/api/clientes/${CLIENTE_ID}/pix/${idPixInvalido}", null)
-        val error = assertThrows<HttpClientResponseException> { client.toBlocking().exchange(request, Any::class.java) }
-
-        assertEquals(HttpStatus.BAD_REQUEST, error.status)
-        assertEquals("Invalid UUID string: $idPixInvalido", error.localizedMessage)
-    }
+//    @Test
+//    fun `nao deve remover idPix invalida`() {
+//
+//        val idPixInvalido = "123456"
+//
+////        given(removeStub.removePix(Mockito.any())).  willThrow(
+////            StatusRuntimeException(
+////                Status.INVALID_ARGUMENT.withDescription(
+////                    "Invalid UUID string: $idPixInvalido"
+////                )
+////            )
+////        )
+//
+//        Mockito.`when`(removeStub.removePix(Mockito.any()))
+//            .thenThrow(StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("Invalid UUID string: $idPixInvalido")))
+//
+//        val request = HttpRequest.DELETE<Any>("/api/clientes/${CLIENTE_ID}/pix/${idPixInvalido}", null)
+//        val error = assertThrows<HttpClientResponseException> { client.toBlocking().exchange(request, Any::class.java) }
+//
+//        assertEquals(HttpStatus.BAD_REQUEST, error.status)
+//        assertEquals("Invalid UUID string: $idPixInvalido", error.localizedMessage)
+//    }
 
     private fun dadosRemovePixResponse(): RemovePixResponse {
         return RemovePixResponse.newBuilder().setMensagem("Chave $CHAVE removida com sucesso").build()

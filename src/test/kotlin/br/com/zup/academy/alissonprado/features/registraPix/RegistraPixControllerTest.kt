@@ -5,6 +5,8 @@ import br.com.zup.academy.alissonprado.RegistraPixServiceGrpc
 import br.com.zup.academy.alissonprado.grpc.GrpcClientFactory
 import br.com.zup.academy.alissonprado.model.TipoChave
 import br.com.zup.academy.alissonprado.model.TipoConta
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Replaces
 import io.micronaut.core.annotation.Introspected
@@ -32,7 +34,7 @@ internal class RegistraPixControllerTest {
     @field:Client("/")
     lateinit var client: HttpClient
 
-    @Inject
+    @field:Inject
     lateinit var registraStub: RegistraPixServiceGrpc.RegistraPixServiceBlockingStub
 
     lateinit var registraChavePixRequest: RegistraChavePixRequest
@@ -47,6 +49,9 @@ internal class RegistraPixControllerTest {
 
     @BeforeEach
     fun setup() {
+
+        Mockito.reset(registraStub)
+
         registraChavePixRequest = RegistraChavePixRequest(
             tipoConta = TipoConta.CONTA_CORRENTE,
             tipoChave = TipoChave.EMAIL,
@@ -184,7 +189,6 @@ internal class RegistraPixControllerTest {
     }
 
 
-
     @Test
     fun `nao deve cadastrar se TipoChave = CPF e chave for incorreta`() {
 
@@ -242,89 +246,85 @@ internal class RegistraPixControllerTest {
         assertEquals("Bad Request", error.message)
     }
 
-    @Factory
-    @Replaces(factory = GrpcClientFactory::class)
-    @Introspected
-    class MochitoStubFactory {
-        @Singleton
-        fun stubMock(): RegistraPixServiceGrpc.RegistraPixServiceBlockingStub {
-            return Mockito.mock(RegistraPixServiceGrpc.RegistraPixServiceBlockingStub::class.java)
+    @Test
+    fun `nao deve cadastrar nova chave Pix se o clienteId for invalido`() {
+
+        val clientIdInvalido = "123456"
+
+        given(registraStub.registraPix(Mockito.any())).willThrow(
+            StatusRuntimeException(
+                Status.INVALID_ARGUMENT.withDescription(
+                    "Invalid UUID string: $clientIdInvalido"
+                )
+            )
+        )
+
+        val request = HttpRequest.POST(
+            "/api/clientes/$clientIdInvalido/pix/", registraChavePixRequest
+        )
+
+        val error = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
         }
-//        fun stubMock() = Mockito.mock(RegistraPixServiceGrpc.RegistraPixServiceBlockingStub::class.java)
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.status)
+        assertEquals("Invalid UUID string: $clientIdInvalido", error.message)
     }
 
+    @Test
+    fun `nao deve cadastrar nova chave Pix se o clienteId nao for encontrado`() {
+
+        val clientIdInvalido = UUID.randomUUID().toString()
+
+        given(registraStub.registraPix(Mockito.any())).willThrow(
+            StatusRuntimeException(
+                Status.FAILED_PRECONDITION.withDescription(
+                    "Não encontrados dados do cartão com a instituição financeira"
+                )
+            )
+        )
+
+        val request = HttpRequest.POST("/api/clientes/$clientIdInvalido/pix/", registraChavePixRequest)
+
+        val error = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
+        }
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.status)
+        assertEquals("Não encontrados dados do cartão com a instituição financeira", error.message)
+    }
+
+    @Test
+    fun `nao deve cadastrar nova chave Pix se a chave ja estiver cadastrada`() {
+
+        given(registraStub.registraPix(Mockito.any())).willThrow(
+            StatusRuntimeException(
+                Status.ALREADY_EXISTS.withDescription(
+                    "Valor de chave informado já está registrado"
+                )
+            )
+        )
+
+        val request = HttpRequest.POST("/api/clientes/$CLIENTE_ID/pix/", registraChavePixRequest)
+
+        val error = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
+        }
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.status)
+        assertEquals("Valor de chave informado já está registrado", error.message)
+    }
+
+
+    @Singleton
+    @Replaces(bean = RegistraPixServiceGrpc.RegistraPixServiceBlockingStub::class)
+    fun stubMock(): RegistraPixServiceGrpc.RegistraPixServiceBlockingStub {
+        return Mockito.mock(RegistraPixServiceGrpc.RegistraPixServiceBlockingStub::class.java)
+    }
 }
 
 
-//    @Test
-//    fun `nao deve cadastrar nova chave Pix se o clienteId for invalido`() {
-//
-//        val clientIdInvalido = "123456"
-//
-//        given(registraStub.registraPix(Mockito.any())).willThrow(
-//            StatusRuntimeException(
-//                Status.INVALID_ARGUMENT.withDescription(
-//                    "Invalid UUID string: $clientIdInvalido"
-//                )
-//            )
-//        )
-//
-//        val request = HttpRequest.POST(
-//            "/api/clientes/$clientIdInvalido/pix/", registraChavePixRequest
-//        )
-//        val response = client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
-//
-//        val error = assertThrows<HttpClientResponseException> {
-//            client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
-//        }
-//
-//        assertEquals(HttpStatus.BAD_REQUEST, error.status)
-//        assertEquals("Invalid UUID string: $CLIENTE_ID", error.message)
-//    }
-//
-//    @Test
-//    fun `nao deve cadastrar nova chave Pix se o clienteId nao for encontrado`() {
-//
-//        val clientIdInvalido = UUID.randomUUID().toString()
-//
-//        given(registraStub.registraPix(Mockito.any())).willThrow(
-//            StatusRuntimeException(
-//                Status.FAILED_PRECONDITION.withDescription(
-//                    "Não encontrados dados do cartão com a instituição financeira"
-//                )
-//            )
-//        )
-//
-//        val request = HttpRequest.POST("/api/clientes/$clientIdInvalido/pix/", registraChavePixRequest)
-//
-//        val error = assertThrows<HttpClientResponseException> {
-//            client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
-//        }
-//
-//        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.status)
-//        assertEquals("Não encontrados dados do cartão com a instituição financeira", error.message)
-//    }
-//
-//    @Test
-//    fun `nao deve cadastrar nova chave Pix se a chave ja estiver cadastrada`() {
-//
-//        given(registraStub.registraPix(Mockito.any())).willThrow(
-//            StatusRuntimeException(
-//                Status.ALREADY_EXISTS.withDescription(
-//                    "Valor de chave informado já está registrado"
-//                )
-//            )
-//        )
-//
-//        val request = HttpRequest.POST("/api/clientes/$CLIENTE_ID/pix/", registraChavePixRequest)
-//
-//        val error = assertThrows<HttpClientResponseException> {
-//            client.toBlocking().exchange(request, RegistraChavePixRequest::class.java)
-//        }
-//
-//        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.status)
-//        assertEquals("Valor de chave informado já está registrado", error.message)
-//    }
+
 
 
 
